@@ -7,6 +7,12 @@
 (function () {
     console.log("[PotatoYT] Initializing Cyber HUD Engine...");
 
+    // Do not interfere with Google Accounts & YouTube authentication pages
+    if (window.location.hostname.includes("accounts.google.com") || window.location.hostname.includes("accounts.youtube.com")) {
+        console.log("[PotatoYT] Authentication flow active. Suspending HUD to prevent login issues.");
+        return;
+    }
+
     let currentResolution = "480p";
     let isAudioOnly = false;
     let isPinned = true;

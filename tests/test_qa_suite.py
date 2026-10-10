@@ -229,6 +229,32 @@ class TestSecurityAndInputHygiene(unittest.TestCase):
         decrypted = self.app.config.get_secure("user_token")
         self.assertEqual(decrypted, "super_secret_auth_token_123")
 
+    def test_browser_flags_allow_auth_and_tokens(self):
+        """Test that browser flags do not disable background networking or force single renderer."""
+        import main
+        flags = main.POTATO_BROWSER_FLAGS
+        self.assertNotIn("--disable-background-networking", flags)
+        self.assertNotIn("--renderer-process-limit=1", flags)
+        self.assertNotIn("--user-data-dir", flags)
+        self.assertIn("VaapiVideoDecoder", flags)
+
+    def test_auth_domain_bypasses_injection(self):
+        """Test that on_loaded suppresses CSS/JS injection during Google login flow."""
+        self.app.window.current_url = "https://accounts.google.com/signin/v2/identifier"
+        self.app.window.get_current_url = lambda: self.app.window.current_url
+        self.app.window.load_css = lambda css: self.fail("load_css should not be called on accounts.google.com")
+        self.app.on_loaded()
+        self.assertEqual(len(self.app.window.evaluated), 0)
+
+    def test_secure_user_data_dir_persistence(self):
+        """Test that get_secure_user_data_dir returns a valid persistent directory path."""
+        from security import get_secure_user_data_dir
+        user_dir = get_secure_user_data_dir()
+        self.assertTrue(os.path.isabs(user_dir))
+        self.assertTrue(os.path.isdir(user_dir))
+        self.assertIn("PotatoYT-Mini", user_dir)
+        self.assertIn("UserData", user_dir)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,13 +14,8 @@ if BASE_DIR not in sys.path:
 
 from security import get_secure_user_data_dir, is_safe_url
 
-# Apply potato PC Edge flags before any webview import with secure isolated profile
+# Apply potato PC Edge flags before any webview import with hardware acceleration
 POTATO_BROWSER_FLAGS = (
-    f'--user-data-dir="{get_secure_user_data_dir()}" '
-    "--disable-background-networking "
-    "--disable-component-update "
-    "--disable-extensions "
-    "--renderer-process-limit=1 "
     "--enable-features=VaapiVideoDecoder,AudioServiceSandbox,CanvasOopRasterization "
     "--disable-features=TranslateUI,MediaEngagementBypassAutoplayPolicies "
     "--force-dark-mode "
@@ -115,6 +110,16 @@ class PotatoApp:
 
     def on_loaded(self):
         """Called when WebView finishes loading a page."""
+        try:
+            current_url = self.window.get_current_url() or ""
+        except Exception:
+            current_url = ""
+
+        # Google authentication domain guard: suspend HUD & custom styling during login
+        if "accounts.google.com" in current_url or "accounts.youtube.com" in current_url:
+            print("[PotatoYT] Authentication flow active. Suspending custom HUD injection.")
+            return
+
         # Inject custom styles & engine script
         try:
             self.window.load_css(self.css_content)
@@ -215,6 +220,9 @@ class PotatoApp:
                 self.config.set("window_height", self.window.height, auto_save=False)
                 self.config.set("window_x", self.window.x, auto_save=False)
                 self.config.set("window_y", self.window.y, auto_save=False)
+                curr = self.window.get_current_url()
+                if curr and is_safe_url(curr) and "accounts.google.com" not in curr and "accounts.youtube.com" not in curr:
+                    self.config.set("last_url", curr, auto_save=False)
             except Exception:
                 pass
         self.config.save()
@@ -245,8 +253,21 @@ class PotatoApp:
         # Launch native win32 thread
         threading.Thread(target=self.init_native_window, daemon=True).start()
 
-        print("[PotatoYT] Starting lightweight WebView2 engine...")
-        webview.start(debug=False, gui="edgechromium")
+        user_data_dir = get_secure_user_data_dir()
+        desktop_user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+        )
+
+        print(f"[PotatoYT] Starting WebView2 engine with persistent profile at: {user_data_dir}")
+        webview.start(
+            debug=False,
+            gui="edgechromium",
+            private_mode=False,
+            storage_path=user_data_dir,
+            user_agent=desktop_user_agent
+        )
 
 
 if __name__ == "__main__":
