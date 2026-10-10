@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build artifacts
+build/
+dist/
+*.spec
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# User configs with sensitive data (if any, keep template config)
+# config.json (not ignored so defaults are committed)
+
+# IDE & Editor folders
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,13 @@
+{
+    "window_x": null,
+    "window_y": null,
+    "window_width": 480,
+    "window_height": 300,
+    "opacity": 100,
+    "always_on_top": true,
+    "engine_mode": "lite",
+    "resolution_cap": "480p",
+    "adblock_enabled": true,
+    "audio_mode": false,
+    "last_url": "https://m.youtube.com"
+}
