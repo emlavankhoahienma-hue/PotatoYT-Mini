@@ -36,29 +36,29 @@ ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 class PotatoAPI:
     """JS Bridge exposed to the webview frontend."""
     def __init__(self, app_controller):
-        self.app = app_controller
+        self._app = app_controller
 
     def toggle_pin(self) -> bool:
-        return bool(self.app.toggle_pin())
+        return bool(self._app.toggle_pin())
 
     def toggle_ghost(self) -> bool:
-        return bool(self.app.toggle_ghost())
+        return bool(self._app.toggle_ghost())
 
     def adjust_opacity(self, delta):
         try:
             delta_val = int(delta)
         except (ValueError, TypeError):
             return False
-        return self.app.adjust_opacity(delta_val)
+        return self._app.adjust_opacity(delta_val)
 
     def set_resolution(self, res_cap: str) -> bool:
         if not isinstance(res_cap, str) or res_cap not in ("360p", "480p", "720p", "auto"):
             return False
-        self.app.config.set("resolution_cap", res_cap)
+        self._app.config.set("resolution_cap", res_cap)
         return True
 
     def set_audio_mode(self, enabled) -> bool:
-        self.app.config.set("audio_mode", bool(enabled))
+        self._app.config.set("audio_mode", bool(enabled))
         return True
 
     def resize_preset(self, width, height) -> bool:
@@ -66,15 +66,15 @@ class PotatoAPI:
             w = int(width)
             h = int(height)
             if 200 <= w <= 3840 and 150 <= h <= 2160:
-                self.app.resize_window(w, h)
+                self._app.resize_window(w, h)
                 return True
         except (ValueError, TypeError):
             pass
         return False
 
     def go_home(self):
-        if self.app.window:
-            self.app.window.load_url("https://m.youtube.com")
+        if self._app.window:
+            self._app.window.load_url("https://m.youtube.com")
 
 
 class PotatoApp:

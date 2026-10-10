@@ -42,6 +42,10 @@ if %ERRORLEVEL% neq 0 (
 
 :: 3. Khoi chay ung dung
 echo [*] Dang khoi dong PotatoYT-Mini...
-start "" "%PYTHON_EXE%" src\main.py
+if exist "PotatoYT-Mini.exe" (
+    start "" "PotatoYT-Mini.exe"
+) else (
+    start "" "%PYTHON_EXE%" src\main.py
+)
 
 exit /b 0
