@@ -8,8 +8,15 @@ import sys
 import threading
 import time
 
-# Apply potato PC Edge flags before any webview import
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+from security import get_secure_user_data_dir, is_safe_url
+
+# Apply potato PC Edge flags before any webview import with secure isolated profile
 POTATO_BROWSER_FLAGS = (
+    f'--user-data-dir="{get_secure_user_data_dir()}" '
     "--disable-background-networking "
     "--disable-component-update "
     "--disable-extensions "
@@ -20,10 +27,6 @@ POTATO_BROWSER_FLAGS = (
     "--autoplay-policy=no-user-gesture-required"
 )
 os.environ["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = POTATO_BROWSER_FLAGS
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
 
 import webview
 from config_manager import ConfigManager
@@ -51,6 +54,15 @@ class PotatoAPI:
             return False
         return self._app.adjust_opacity(delta_val)
 
+    def set_opacity_direct(self, val) -> bool:
+        try:
+            opacity_val = max(20, min(100, int(val)))
+            self._app.win32.set_opacity(opacity_val)
+            self._app.config.set("opacity", opacity_val)
+            return True
+        except (ValueError, TypeError):
+            return False
+
     def set_resolution(self, res_cap: str) -> bool:
         if not isinstance(res_cap, str) or res_cap not in ("360p", "480p", "720p", "auto"):
             return False
@@ -70,6 +82,16 @@ class PotatoAPI:
                 return True
         except (ValueError, TypeError):
             pass
+        return False
+
+    def navigate_to(self, url: str) -> bool:
+        if not is_safe_url(url):
+            print(f"[PotatoYT] Blocked navigation to untrusted URL: {url}")
+            return False
+        if self._app.window:
+            self._app.window.load_url(url)
+            self._app.config.set("last_url", url)
+            return True
         return False
 
     def go_home(self):

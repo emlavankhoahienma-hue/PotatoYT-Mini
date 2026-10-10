@@ -1,14 +1,17 @@
-/* PotatoYT-Mini - Ultra Lightweight CSS Injections */
+/* =========================================================================
+   PotatoYT-Mini - Modern Cyber Glassmorphism Interface
+   Optimized for Ultra-Low Resource Usage, Multitasking & Gaming
+   ========================================================================= */
 
-/* Force clean dark mode */
+/* Dark Canvas Base */
 html, body {
-    background-color: #0b0f14 !important;
+    background-color: #07090e !important;
     overflow-x: hidden !important;
     user-select: none;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Roboto, sans-serif !important;
 }
 
-/* Ẩn các banner quảng cáo tải app, YouTube Premium và khảo sát */
+/* Ẩn các thành phần thừa, quảng cáo, popup tải app & khảo sát */
 ytm-pivot-bar-renderer,
 .ytm-pivot-bar-renderer,
 ytm-promoted-sparkles-text-search-web-renderer,
@@ -27,7 +30,7 @@ ytm-item-section-renderer[section-identifier="comment-item-section"],
     display: none !important;
 }
 
-/* Tối ưu hóa Video Player vừa khít cửa sổ Mini */
+/* Fit video perfectly in PiP window */
 video.video-stream, .html5-video-player {
     width: 100% !important;
     height: 100% !important;
@@ -35,7 +38,7 @@ video.video-stream, .html5-video-player {
 }
 
 /* =========================================================================
-   PotatoYT Floating Control HUD (Thanh công cụ nổi siêu nhẹ)
+   1. Modern Glassmorphism Floating Topbar (HUD)
    ========================================================================= */
 #potato-hud-container {
     position: fixed;
@@ -43,134 +46,321 @@ video.video-stream, .html5-video-player {
     left: 0;
     right: 0;
     z-index: 2147483647;
-    background: rgba(15, 23, 42, 0.88);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(11, 15, 25, 0.82);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 8px;
-    height: 34px;
+    padding: 3px 8px;
+    height: 36px;
     box-sizing: border-box;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-    opacity: 0.2;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.15;
 }
 
-#potato-hud-container:hover {
+#potato-hud-container:hover, #potato-hud-container.pinned-visible {
     opacity: 1;
 }
 
 .potato-hud-left, .potato-hud-right {
     display: flex;
     align-items: center;
+    gap: 5px;
+}
+
+/* Brand badge */
+.potato-brand {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: 0.4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(14, 165, 233, 0.05) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    cursor: default;
+}
+
+.potato-brand-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 8px #38bdf8;
+}
+
+/* Modern Pill Button */
+.potato-pill-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+    height: 24px;
+    box-sizing: border-box;
+}
+
+.potato-pill-btn svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.potato-pill-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+}
+
+.potato-pill-btn:active {
+    transform: translateY(0);
+}
+
+.potato-pill-btn.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+}
+
+.potato-pill-btn.danger-active {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    border-color: #fb7185;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
+}
+
+/* Modern Select & Sliders */
+.potato-modern-select {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 2px 5px;
+    cursor: pointer;
+    outline: none;
+    height: 24px;
+    transition: all 0.15s ease;
+}
+
+.potato-modern-select:hover {
+    border-color: #38bdf8;
+    background: rgba(15, 23, 42, 1);
+}
+
+/* Opacity slider bar */
+.potato-opacity-slider {
+    width: 50px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.potato-opacity-slider:hover {
+    background: rgba(56, 189, 248, 0.35);
+}
+
+.potato-opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 6px #38bdf8;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.potato-opacity-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+}
+
+/* =========================================================================
+   2. Sleek Floating Toast Notifications
+   ========================================================================= */
+#potato-toast {
+    position: fixed;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.2);
+    color: #f8fafc;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 2147483647;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
     gap: 6px;
 }
 
-.potato-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #38bdf8;
-    letter-spacing: 0.5px;
-    margin-right: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+#potato-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
-.potato-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #e2e8f0;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.2;
-}
-
-.potato-btn:hover {
-    background: rgba(56, 189, 248, 0.25);
-    border-color: #38bdf8;
-    color: #ffffff;
-}
-
-.potato-btn.active {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #ffffff;
-    box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
-}
-
-.potato-select {
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #38bdf8;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 4px;
-    padding: 2px 4px;
-    cursor: pointer;
-    outline: none;
-}
-
-/* Audio-Only Mode Overlay */
+/* =========================================================================
+   3. Aesthetic Audio-Only Screen (Cyber Equalizer Visualizer)
+   ========================================================================= */
 #potato-audio-overlay {
     position: fixed;
-    top: 34px;
+    top: 36px;
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
     z-index: 2147483640;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     color: #94a3b8;
-    font-size: 12px;
+    cursor: pointer;
 }
 
 #potato-audio-overlay.active {
     display: flex;
 }
 
-.potato-pulse {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(56, 189, 248, 0.2);
+/* Animated Sound Wave Equalizer */
+.potato-eq-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    animation: potato-pulse-anim 2s infinite;
+    align-items: flex-end;
+    gap: 4px;
+    height: 38px;
+    margin-bottom: 14px;
 }
 
-@keyframes potato-pulse-anim {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5); }
-    70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+.potato-eq-bar {
+    width: 5px;
+    background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+    border-radius: 3px;
+    animation: potato-eq-bounce 1.2s ease-in-out infinite alternate;
 }
 
-/* Ghost mode hint overlay */
-#potato-ghost-banner {
-    position: fixed;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(225, 29, 72, 0.9);
-    color: white;
-    font-size: 11px;
+.potato-eq-bar:nth-child(1) { height: 18px; animation-delay: 0.1s; }
+.potato-eq-bar:nth-child(2) { height: 32px; animation-delay: 0.3s; }
+.potato-eq-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+.potato-eq-bar:nth-child(4) { height: 38px; animation-delay: 0.4s; }
+.potato-eq-bar:nth-child(5) { height: 16px; animation-delay: 0.25s; }
+
+@keyframes potato-eq-bounce {
+    0% { transform: scaleY(0.3); opacity: 0.6; }
+    100% { transform: scaleY(1.0); opacity: 1; box-shadow: 0 0 10px #38bdf8; }
+}
+
+.potato-audio-title {
+    font-size: 13px;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
+    color: #f1f5f9;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+}
+
+.potato-audio-subtitle {
+    font-size: 11px;
+    color: #38bdf8;
+    font-weight: 600;
+}
+
+.potato-audio-hint {
+    margin-top: 10px;
+    font-size: 10px;
+    color: #64748b;
+}
+
+/* =========================================================================
+   4. Modern Quick Search Modal
+   ========================================================================= */
+#potato-search-modal {
+    position: fixed;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.25);
+    padding: 8px 12px;
+    border-radius: 12px;
     z-index: 2147483647;
     display: none;
-    pointer-events: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    align-items: center;
+    gap: 8px;
+    width: 82%;
+    max-width: 420px;
+    box-sizing: border-box;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#potato-search-modal.active {
+    display: flex;
+    transform: translateX(-50%) scale(1);
+}
+
+#potato-search-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+#potato-search-input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#potato-search-submit {
+    background: #0284c7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#potato-search-submit:hover {
+    background: #0ea5e9;
+    box-shadow: 0 0 8px rgba(14, 165, 233, 0.5);
 }

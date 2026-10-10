@@ -1,8 +1,8 @@
 {
-    "window_x": null,
-    "window_y": null,
-    "window_width": 480,
-    "window_height": 300,
+    "window_x": 266,
+    "window_y": 122,
+    "window_width": 931,
+    "window_height": 532,
     "opacity": 100,
     "always_on_top": true,
     "engine_mode": "lite",

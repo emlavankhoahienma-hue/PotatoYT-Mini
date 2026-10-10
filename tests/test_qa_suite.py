@@ -22,10 +22,14 @@ from main import PotatoApp, PotatoAPI
 class MockWindow:
     def __init__(self):
         self.evaluated = []
+        self.current_url = ""
         self.width = 480
         self.height = 300
         self.x = 100
         self.y = 100
+
+    def load_url(self, url):
+        self.current_url = url
 
     def evaluate_js(self, js):
         self.evaluated.append(js)
@@ -164,6 +168,66 @@ class TestSecurityAndInputHygiene(unittest.TestCase):
         last_pin_call = self.app.window.evaluated[-1]
         self.assertNotIn("evil", last_pin_call)
         self.assertIn("window.potato_update_pin(true)", last_pin_call)
+
+    def test_dpapi_encryption_and_decryption(self):
+        """Test Windows DPAPI encryption and decryption for sensitive data protection."""
+        from security import encrypt_string, decrypt_string
+        secret = "secret_session_token_xyz_9988"
+        cipher = encrypt_string(secret)
+        self.assertNotEqual(secret, cipher)
+        self.assertTrue(len(cipher) > 30)
+
+        decrypted = decrypt_string(cipher)
+        self.assertEqual(secret, decrypted)
+
+    def test_is_safe_url_guard(self):
+        """Test URL safety validator blocks phishing, dangerous schemes, and attacks."""
+        from security import is_safe_url
+        # Safe YouTube/Google domains
+        self.assertTrue(is_safe_url("https://m.youtube.com"))
+        self.assertTrue(is_safe_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+        self.assertTrue(is_safe_url("https://youtu.be/dQw4w9WgXcQ"))
+        self.assertTrue(is_safe_url("https://accounts.google.com/signin"))
+
+        # Dangerous attacks and bypasses
+        self.assertFalse(is_safe_url("file:///C:/Windows/system32/cmd.exe"))
+        self.assertFalse(is_safe_url("javascript:alert(document.cookie)"))
+        self.assertFalse(is_safe_url("data:text/html,<script>alert(1)</script>"))
+        self.assertFalse(is_safe_url("https://youtube.com.evil-attacker.com/login"))
+        self.assertFalse(is_safe_url("http://insecure-phishing.com"))
+        self.assertFalse(is_safe_url("ms-appx://dangerous"))
+
+    def test_api_navigate_to_safety(self):
+        """Test PotatoAPI.navigate_to enforces URL safety guard."""
+        # Malicious URL must be blocked
+        res_blocked = self.api.navigate_to("file:///C:/Windows/notepad.exe")
+        self.assertFalse(res_blocked)
+
+        # Safe YouTube URL accepted
+        res_allowed = self.api.navigate_to("https://m.youtube.com/feed/trending")
+        self.assertTrue(res_allowed)
+
+    def test_api_set_opacity_direct(self):
+        """Test direct slider opacity control with clamping."""
+        self.api.set_opacity_direct(55)
+        self.assertEqual(self.app.config.get("opacity"), 55)
+
+        self.api.set_opacity_direct(999)
+        self.assertEqual(self.app.config.get("opacity"), 100)
+
+        self.api.set_opacity_direct(5)
+        self.assertEqual(self.app.config.get("opacity"), 20)
+
+    def test_config_secure_storage(self):
+        """Test storing and retrieving DPAPI-encrypted values in config."""
+        self.app.config.set_secure("user_token", "super_secret_auth_token_123")
+        # Check raw stored value is encrypted
+        raw_val = self.app.config.get("_sec_user_token")
+        self.assertNotEqual(raw_val, "super_secret_auth_token_123")
+
+        # Check retrieval decrypts correctly
+        decrypted = self.app.config.get_secure("user_token")
+        self.assertEqual(decrypted, "super_secret_auth_token_123")
 
 
 if __name__ == "__main__":

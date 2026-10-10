@@ -7,6 +7,16 @@ import json
 import os
 from typing import Dict, Any
 
+try:
+    from security import is_safe_url, encrypt_string, decrypt_string
+except ImportError:
+    try:
+        from src.security import is_safe_url, encrypt_string, decrypt_string
+    except ImportError:
+        def is_safe_url(u): return isinstance(u, str) and (u.startswith("https://m.youtube.com") or u.startswith("https://www.youtube.com"))
+        def encrypt_string(s): return s
+        def decrypt_string(s): return s
+
 DEFAULT_CONFIG: Dict[str, Any] = {
     "window_x": None,
     "window_y": None,
@@ -55,7 +65,7 @@ class ConfigManager:
         elif key == "resolution_cap":
             return value if value in ("360p", "480p", "720p", "auto") else DEFAULT_CONFIG["resolution_cap"]
         elif key == "last_url":
-            if isinstance(value, str) and (value.startswith("http://") or value.startswith("https://")):
+            if isinstance(value, str) and is_safe_url(value):
                 return value
             return DEFAULT_CONFIG["last_url"]
         elif key in ("window_x", "window_y"):
@@ -98,4 +108,19 @@ class ConfigManager:
         self.config[key] = self._validate_value(key, value)
         if auto_save:
             self.save()
+
+    def set_secure(self, key: str, value: str, auto_save: bool = True):
+        """Stores a sensitive value encrypted with Windows DPAPI."""
+        encrypted_val = encrypt_string(str(value))
+        self.config[f"_sec_{key}"] = encrypted_val
+        if auto_save:
+            self.save()
+
+    def get_secure(self, key: str, default: str = "") -> str:
+        """Retrieves and decrypts a DPAPI-protected value."""
+        enc = self.config.get(f"_sec_{key}", "")
+        if not enc:
+            return default
+        dec = decrypt_string(enc)
+        return dec if dec else default
 
