@@ -49,13 +49,38 @@ class Win32Controller:
         self._running = False
         self.hotkey_callbacks = {}
 
-    def find_window(self, max_retries: int = 20, delay: float = 0.5) -> bool:
-        """Locates the HWND for the application window by title."""
+    def find_window(self, max_retries: int = 25, delay: float = 0.4) -> bool:
+        """Locates the HWND for the application window by title, or by matching process ID."""
         for _ in range(max_retries):
             hwnd = user32.FindWindowW(None, self.window_title)
             if hwnd:
                 self.hwnd = hwnd
                 return True
+
+            # Fallback: Enumerate windows for this process
+            current_pid = kernel32.GetCurrentProcessId()
+
+            def enum_cb(h, _):
+                if user32.IsWindowVisible(h):
+                    pid = wintypes.DWORD()
+                    user32.GetWindowThreadProcessId(h, ctypes.byref(pid))
+                    if pid.value == current_pid:
+                        length = user32.GetWindowTextLengthW(h)
+                        if length > 0:
+                            buff = ctypes.create_unicode_buffer(length + 1)
+                            user32.GetWindowTextW(h, buff, length + 1)
+                            title = buff.value
+                            if self.window_title in title or "PotatoYT" in title:
+                                self.hwnd = h
+                                return False
+                return True
+
+            WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+            cb_func = WNDENUMPROC(enum_cb)
+            user32.EnumWindows(cb_func, 0)
+            if self.hwnd:
+                return True
+
             time.sleep(delay)
         return False
 
@@ -63,8 +88,8 @@ class Win32Controller:
         """Pins or unpins the window to stay on top of all other windows."""
         if not self.hwnd:
             return False
-        self.is_topmost = enable
-        flag = HWND_TOPMOST if enable else HWND_NOTOPMOST
+        self.is_topmost = bool(enable)
+        flag = HWND_TOPMOST if self.is_topmost else HWND_NOTOPMOST
         result = user32.SetWindowPos(
             self.hwnd,
             flag,
@@ -83,7 +108,11 @@ class Win32Controller:
         """
         if not self.hwnd:
             return False
-        clamped = max(20, min(100, alpha_percent))
+        try:
+            val = int(alpha_percent)
+        except (ValueError, TypeError):
+            val = 100
+        clamped = max(20, min(100, val))
         alpha = int((clamped / 100.0) * 255)
         self.opacity = alpha
 
@@ -96,8 +125,12 @@ class Win32Controller:
 
     def adjust_opacity(self, delta_percent: int) -> int:
         """Increases or decreases opacity by delta (e.g. +10 or -10)."""
+        try:
+            delta = int(delta_percent)
+        except (ValueError, TypeError):
+            delta = 0
         current_percent = int((self.opacity / 255.0) * 100)
-        new_percent = max(20, min(100, current_percent + delta_percent))
+        new_percent = max(20, min(100, current_percent + delta))
         self.set_opacity(new_percent)
         return new_percent
 
@@ -160,19 +193,21 @@ class Win32Controller:
             if user32.PeekMessageW(ctypes.byref(msg), None, 0, 0, 1):  # PM_REMOVE = 1
                 if msg.message == WM_HOTKEY:
                     hotkey_id = msg.wParam
-                    if hotkey_id == 1 and 'toggle_pin' in self.hotkey_callbacks:
-                        self.hotkey_callbacks['toggle_pin']()
-                    elif hotkey_id == 2 and 'toggle_ghost' in self.hotkey_callbacks:
-                        self.hotkey_callbacks['toggle_ghost']()
-                    elif hotkey_id == 3 and 'opacity_down' in self.hotkey_callbacks:
-                        self.hotkey_callbacks['opacity_down']()
-                    elif hotkey_id == 4 and 'opacity_up' in self.hotkey_callbacks:
-                        self.hotkey_callbacks['opacity_up']()
-                    elif hotkey_id == 5 and 'toggle_audio' in self.hotkey_callbacks:
-                        self.hotkey_callbacks['toggle_audio']()
+                    cb_key = {
+                        1: 'toggle_pin',
+                        2: 'toggle_ghost',
+                        3: 'opacity_down',
+                        4: 'opacity_up',
+                        5: 'toggle_audio'
+                    }.get(hotkey_id)
+                    if cb_key and cb_key in self.hotkey_callbacks:
+                        try:
+                            self.hotkey_callbacks[cb_key]()
+                        except Exception as e:
+                            print(f"[Win32] Error in hotkey callback '{cb_key}': {e}")
                 user32.TranslateMessage(ctypes.byref(msg))
                 user32.DispatchMessageW(ctypes.byref(msg))
-            time.sleep(0.02)  # Tiny sleep to yield CPU, 0% CPU footprint
+            time.sleep(0.02)
 
         # Cleanup
         for i in range(1, 6):

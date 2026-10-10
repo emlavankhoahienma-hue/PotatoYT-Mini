@@ -38,26 +38,39 @@ class PotatoAPI:
     def __init__(self, app_controller):
         self.app = app_controller
 
-    def toggle_pin(self):
-        return self.app.toggle_pin()
+    def toggle_pin(self) -> bool:
+        return bool(self.app.toggle_pin())
 
-    def toggle_ghost(self):
-        return self.app.toggle_ghost()
+    def toggle_ghost(self) -> bool:
+        return bool(self.app.toggle_ghost())
 
     def adjust_opacity(self, delta):
-        return self.app.adjust_opacity(delta)
+        try:
+            delta_val = int(delta)
+        except (ValueError, TypeError):
+            return False
+        return self.app.adjust_opacity(delta_val)
 
-    def set_resolution(self, res_cap):
+    def set_resolution(self, res_cap: str) -> bool:
+        if not isinstance(res_cap, str) or res_cap not in ("360p", "480p", "720p", "auto"):
+            return False
         self.app.config.set("resolution_cap", res_cap)
         return True
 
-    def set_audio_mode(self, enabled):
-        self.app.config.set("audio_mode", enabled)
+    def set_audio_mode(self, enabled) -> bool:
+        self.app.config.set("audio_mode", bool(enabled))
         return True
 
-    def resize_preset(self, width, height):
-        self.app.resize_window(width, height)
-        return True
+    def resize_preset(self, width, height) -> bool:
+        try:
+            w = int(width)
+            h = int(height)
+            if 200 <= w <= 3840 and 150 <= h <= 2160:
+                self.app.resize_window(w, h)
+                return True
+        except (ValueError, TypeError):
+            pass
+        return False
 
     def go_home(self):
         if self.app.window:
@@ -119,18 +132,25 @@ class PotatoApp:
             print("[PotatoYT] Notice: Native HWND not acquired. Hotkeys will run in window context.")
 
     def sync_hud_state(self, pinned=None, ghost=None, opacity=None, audio=None):
-        """Dispatches state updates to webview frontend HUD."""
+        """Dispatches state updates to webview frontend HUD with injection sanitization."""
         if not self.window:
             return
         try:
             if pinned is not None:
-                self.window.evaluate_js(f"window.potato_update_pin({str(pinned).lower()})")
+                safe_pinned = "true" if bool(pinned) else "false"
+                self.window.evaluate_js(f"window.potato_update_pin({safe_pinned})")
             if ghost is not None:
-                self.window.evaluate_js(f"window.potato_update_ghost({str(ghost).lower()})")
+                safe_ghost = "true" if bool(ghost) else "false"
+                self.window.evaluate_js(f"window.potato_update_ghost({safe_ghost})")
             if opacity is not None:
-                self.window.evaluate_js(f"window.potato_update_opacity({opacity})")
+                try:
+                    safe_opacity = max(20, min(100, int(opacity)))
+                except (ValueError, TypeError):
+                    safe_opacity = 100
+                self.window.evaluate_js(f"window.potato_update_opacity({safe_opacity})")
             if audio is not None:
-                self.window.evaluate_js(f"window.potato_update_audio({str(audio).lower()})")
+                safe_audio = "true" if bool(audio) else "false"
+                self.window.evaluate_js(f"window.potato_update_audio({safe_audio})")
         except Exception:
             pass
 
@@ -165,14 +185,14 @@ class PotatoApp:
             self.config.set("window_height", height)
 
     def on_closing(self):
-        """Cleanup before window closes."""
+        """Cleanup before window closes (batched config write)."""
         self.win32.stop()
         if self.window:
             try:
-                self.config.set("window_width", self.window.width)
-                self.config.set("window_height", self.window.height)
-                self.config.set("window_x", self.window.x)
-                self.config.set("window_y", self.window.y)
+                self.config.set("window_width", self.window.width, auto_save=False)
+                self.config.set("window_height", self.window.height, auto_save=False)
+                self.config.set("window_x", self.window.x, auto_save=False)
+                self.config.set("window_y", self.window.y, auto_save=False)
             except Exception:
                 pass
         self.config.save()

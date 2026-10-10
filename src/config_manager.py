@@ -28,12 +28,56 @@ class ConfigManager:
         self.config = DEFAULT_CONFIG.copy()
         self.load()
 
+    def _validate_value(self, key: str, value: Any) -> Any:
+        """Sanitizes and validates individual configuration settings."""
+        if key == "window_width":
+            try:
+                val = int(value)
+                return max(200, min(3840, val))
+            except (ValueError, TypeError):
+                return DEFAULT_CONFIG["window_width"]
+        elif key == "window_height":
+            try:
+                val = int(value)
+                return max(150, min(2160, val))
+            except (ValueError, TypeError):
+                return DEFAULT_CONFIG["window_height"]
+        elif key == "opacity":
+            try:
+                val = int(value)
+                return max(20, min(100, val))
+            except (ValueError, TypeError):
+                return DEFAULT_CONFIG["opacity"]
+        elif key in ("always_on_top", "adblock_enabled", "audio_mode"):
+            return bool(value)
+        elif key == "engine_mode":
+            return value if value in ("lite", "pure", "desktop") else DEFAULT_CONFIG["engine_mode"]
+        elif key == "resolution_cap":
+            return value if value in ("360p", "480p", "720p", "auto") else DEFAULT_CONFIG["resolution_cap"]
+        elif key == "last_url":
+            if isinstance(value, str) and (value.startswith("http://") or value.startswith("https://")):
+                return value
+            return DEFAULT_CONFIG["last_url"]
+        elif key in ("window_x", "window_y"):
+            if value is None:
+                return None
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return None
+        return value
+
     def load(self) -> Dict[str, Any]:
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.config.update(data)
+                    if isinstance(data, dict):
+                        for k, v in data.items():
+                            if k in DEFAULT_CONFIG:
+                                self.config[k] = self._validate_value(k, v)
+                    else:
+                        print(f"[Config] Non-dictionary data in {self.config_path}. Using defaults.")
             except Exception as e:
                 print(f"[Config] Error loading config: {e}. Using defaults.")
         return self.config
@@ -51,6 +95,7 @@ class ConfigManager:
         return self.config.get(key, default)
 
     def set(self, key: str, value: Any, auto_save: bool = True):
-        self.config[key] = value
+        self.config[key] = self._validate_value(key, value)
         if auto_save:
             self.save()
+
